@@ -2,6 +2,20 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 
+\usepackage[svgnames]{xcolor}
+\usepackage{listings}
+
+\lstset{language=R,
+    basicstyle=\small\ttfamily,
+    stringstyle=\color{DarkGreen},
+    otherkeywords={0,1,2,3,4,5,6,7,8,9},
+    morekeywords={TRUE,FALSE},
+    deletekeywords={data,frame,length,as,character},
+    keywordstyle=\color{blue},
+    commentstyle=\color{DarkGreen},
+}
+
+
 \title{TMA4300Exercise1}
 \author{Sverre Rothmund}
 \date{January 2019}
@@ -85,16 +99,91 @@ The determinant of this is simply
 Now the probability density function $f_X(X)$ can be evaluated. 
 
 \begin{align}
-    f_X(X) ={}&  f_X(x_1, x_2, ..., x_{k-1}, v)\\
+    f_X(X) ={}&  f_X(x_1, x_2, ..., x_{k-1}, v) \label{PC:density_with_v}\\
     ={}& f_z(g^{-1}(X)) \left| \frac{\partial}{\partial X} g^{-1}(X) \right|\\
     ={}& \prod_{k=1}^{K-1} \frac{1}{\Gamma(\alpha_k)} g^{-1}(x_k)^{\alpha_k -1} e^{-g^{-1}(x_k)} \\
-    {}& \frac{1}{\Gamma(\alpha_K)} g^{-1}(v)^{\alpha_K -1} e^{-g^{-1}(v)} c^{k-1}\\
+    {}& \frac{1}{\Gamma(\alpha_K)} g^{-1}(v)^{\alpha_K -1} e^{-g^{-1}(v)} v^{k-1}\\
     ={}& \frac{1}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^{K-1} \left( x_k^{\alpha_k-1} v^{\alpha_k-1} e^{-x_k v} \right)\\
-    {}& \left( \right)
+    {}& \left( 1 - \sum_{k=1}^{K-1} x_k \right)^{\alpha_k-1} v^{\alpha_k-1} e^{-v \left( 1 - \sum_{k=1}^{K-1} x_k \right)}  v^{k-1}\\
+    ={}& \frac{1}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^{K-1} \left( x_k^{\alpha_k-1} \right) \left( 1 - \sum_{k=1}^{K-1} x_k \right)^{\alpha_k-1} \\
+    {}& \prod_{k=1}^{K} \left( c^{\alpha_k-1}\right) e^{-\sum_{k=0}^{K-1} (x_k v) - v \left( 1 - \sum_{k=1}^{K-1} x_k \right) }  v^{k-1}\\
+    ={}& h(x_1,x_2,...,x_{k-1}) c^{\sum_{k=1}^{K}(\alpha_k-1)} e^{-v }  v^{k-1} \\
+    ={}&h(x_1,x_2,...,x_{k-1}) c^{\sum_{k=1}^{K}(\alpha_k)-1} e^{-v}
 \end{align}
+
+To find the density function $f(x_1,...,x_{k-1})$, the function in \ref{PC:density_with_v} must be integrated over the entire domain of $v$. Since $v$ is a sum of gamma functions it cannot take negative values, making its domain from $-\inf$ to $\inf$.
+
+\begin{align}
+    f_X(x_1, x_2, ..., x_{k-1}) &= \int_{0}^{\inf} f_X(x_1, x_2, ..., x_{k-1},v) dv\\
+    &= h(x_1,x_2,...,x_{k-1}) \int_{0}^{\inf} c^{\sum_{k=1}^{K}(\alpha_k)-1} e^{-v} dv
+\end{align}
+
+From the definition of the gamma function, this can be written as
+
+\begin{align}
+    f_X(x_1, x_2, ..., x_{k-1}) &= h(x_1,x_2,...,x_{k-1}) \Gamma(\sum_{k=1}^{K}\alpha_k) \\
+    &= \frac{\Gamma(\sum_{k=1}^{K}\alpha_k)}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^{K-1} \left( x_k^{\alpha_k-1} \right) \left( 1 - \sum_{k=1}^{K-1} x_k \right)^{\alpha_k-1}
+\end{align}
+
+Which is the definition of the density function of the Dirchlet distribution given in the task. This means that the set of variables $(x_1 x_2 ... x_k)$ defined as $x_k = z_k / (z_1 + ... + z_K)$ are Dirchlet distributed when $(z_1, z_2, ... , z_K)$ are produced from a gamma distribution. The parameter vector in the Dirichlet distribution, $\mathbf{\alpha}$, is the ordered set of the $\alpha_k$ paramteres used in the gamma distributions.
 
 
 \subsection{Task 2}
+
+An R function that generates realisations from a Dirichlet distribution was implemented as follows, with the parameter vector $\alpha$ made randomly between 0 and 10. 
+
+
+\begin{lstlisting}
+n = 100000
+
+K = 5;
+alpha = runif(K,0,10)
+
+x_vec = matrix(nrow=n,ncol=K)
+
+for (i in 1:n){
+  z = rgamma(K,alpha)
+  v = sum(z)
+  x = z/v
+  x_vec[i,] = x
+}
+
+mean = colSums(x_vec)/n
+offset =x_vec- t(t(rep(1,n)))%*%t(mean)
+empirical_variance = colSums(offset^2)/n
+
+expected_value = alpha/sum(alpha)
+variance = alpha*(sum(alpha) -alpha)/(sum(alpha)^2 * (sum(alpha)+1)) 
+\end{lstlisting}
+
+To test if the implementation was correct, 100000 realizations were generated, and the mean and empirical variance was calculated. The theoretical expected value variance of a Dirichlet function is defined as 
+
+\begin{align}
+    E[x_i] &= \frac{alpha_i}{\sum_k \alpha_k}\\
+    Var[x_i] &= \frac{\alpha_i (\alpha_0 - \alpha_i)}{\alpha_0^2 (\alpha_0 + 1)}\\
+    \alpha_0 &= \sum_{i=1}^{K} \alpha_i
+\end{align}
+
+The test resulted in the empirical and theoretical variance and mean shown in table \ref{tab:PC:results}.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    &   $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$\\
+    \hline
+    empirical mean &  0.26116374 & 0.04357986 & 0.27295163 & 0.13570097 & 0.28660378\\
+    expected value &  0.2609058 & 0.0436166 & 0.2726321  &0.1357966  &0.2870489\\
+    mean deviation & 2.579310e-04 & -3.673436e-05  &3.195531e-04& -9.562904e-05 &-4.451208e-04 \\
+    \hline\\
+    empirical variance & 0.006243956 & 0.001334725 & 0.006403530 & 0.003779810 & 0.006592640 \\
+    theoretical variance & 0.006198386 & 0.001340846 & 0.006374207 & 0.003772245 & 0.006578255\\
+    variance deviation & 4.557055e-05 & -6.121071e-06  & 2.932295e-05  & 7.564649e-06 &  1.438518e-05\\
+    \hline
+    \end{tabular}
+    \caption{Resulting comparison of theoretical and calculated values.}
+    \label{tab:PC:results}
+\end{table}
 
 \section{Problem D}
 
