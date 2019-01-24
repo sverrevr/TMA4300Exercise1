@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\title{TMA4300Exercise1}
+\author{Sverre Rothmund}
+\date{January 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem A}
+
+\section{Problem B}
+
+\section{Problem C}
+\subsection{Task 1}
+Lets define the vector $Z = [z_1,z_2,..,z_K]$ with the density function $f_Z(z_1,z_2,...,z_K)$. Since the $z_k$ values are independently drawn from a gamma distribution with parameter $\alpha_k$ , the following holds
+\begin{align}
+    f_Z(z_1,z_2,...,z_K) &= f_Z(z_1) f_Z(z_2) ... f_Z(z_K) \\
+    &= \prod_{k=1}^K \frac{1}{\Gamma(\alpha_k)} z_k^{\alpha_k -1} e^{-z_k}
+\end{align}
+
+Lets define the vector
+\begin{align}
+    X &= [x_1, x_2, ... , x_{k-1}, v]\\
+    &= g(Z)\\
+    &= \left[ \frac{z_1}{\sum_{k=1}^K z_k}, ... ,\frac{z_{k-1}}{\sum_{k=1}^K z_k},  \sum_{k=1}^K z_k\right]
+\end{align}
+
+Using the change of variables formula the distribution of X can be found by the following
+
+\begin{align}
+    f_X(X) = f_z(g^{-1}(X)) \left| \frac{\partial}{\partial X} g^{-1}(X) \right| \label{PC:change_of_variable}
+\end{align}
+
+Firstly $g^{-1}(X)$ can be found as follows
+
+\begin{align}
+    Z &= g^{-1}(X)\\
+    &= \left[ x_1 v, ... , x_{K-1} v, x_{K} v \right] \label{PC:g_inv_pre}
+\end{align}
+
+$x_{K}$ is undefined, but the sum over all $x_k$ are defined as 1, that is $\sum_{k=1}^K x_k=1$. The last term can therefor be expressed as $x_K = 1 - \sum_{k=1}^{K-1} x_k$. Inserting this into \ref{PC:g_inv_pre} gives
+\begin{align}
+    g^{-1}(x) = \left[ x_1 v, ... , x_{K-1} v, \left(1 - \sum_{k=1}^{K-1} x_k \right) v \right] \label{g_inv}
+\end{align}
+
+The Jacobin in expression \ref{PC:change_of_variable} can then be found as
+
+\begin{align}
+    \frac{\partial}{\partial X} g^{-1}(X) &= \begin{bmatrix} \frac{\partial g_1^{-1}}{\partial x_1} & \cdots & \frac{\partial g_K^{-1}}{\partial x_1}\\
+    \vdots & & \vdots\\
+    \frac{\partial g_1^{-1}}{\partial x_{k-1}} & \cdots & \frac{\partial g_K^{-1}}{\partial x_{k-1}} \\
+    \frac{\partial g_1^{-1}}{\partial v} & \cdots & \frac{\partial g_K^{-1}}{\partial v}\end{bmatrix}\\
+    &= \begin{bmatrix}
+    v & 0 & 0 & \cdots & 0 & -v\\
+    0 & v & 0 & \cdots & 0 & -v\\
+    0 & 0 & v & \cdots & 0 & -v\\
+    \vdots & \vdots & \vdots & & \vdots & \vdots\\
+    0 & 0 & 0 & \cdots & v & -v\\
+    x_1 & x_2 & x_3 & \cdots & x_{k-1} &\left(1 - \sum_{k=1}^{K-1} x_k \right)
+    \end{bmatrix}
+\end{align}
+
+A sequence of matrix operations are done where each column (except for the last one) is subtracted from the last column.
+
+\begin{align}
+    \frac{\partial}{\partial X} g^{-1}(X) &= \begin{bmatrix}
+    v & 0 & 0 & \cdots & 0 & 0\\
+    0 & v & 0 & \cdots & 0 & 0\\
+    0 & 0 & v & \cdots & 0 & 0\\
+    \vdots & \vdots & \vdots & & \vdots & \vdots\\
+    0 & 0 & 0 & \cdots & v & 0\\
+    x_1 & x_2 & x_3 & \cdots & x_{k-1} & 1
+    \end{bmatrix}
+\end{align}
+
+The determinant of this is simply
+\begin{align}
+    \left| \frac{\partial}{\partial X} g^{-1}(X) \right| = v^{k-1} \label{PC:det_of_jacobian}
+\end{align}
+
+Now the probability density function $f_X(X)$ can be evaluated. 
+
+\begin{align}
+    f_X(X) ={}&  f_X(x_1, x_2, ..., x_{k-1}, v)\\
+    ={}& f_z(g^{-1}(X)) \left| \frac{\partial}{\partial X} g^{-1}(X) \right|\\
+    ={}& \prod_{k=1}^{K-1} \frac{1}{\Gamma(\alpha_k)} g^{-1}(x_k)^{\alpha_k -1} e^{-g^{-1}(x_k)} \\
+    {}& \frac{1}{\Gamma(\alpha_K)} g^{-1}(v)^{\alpha_K -1} e^{-g^{-1}(v)} c^{k-1}\\
+    ={}& \frac{1}{\prod_{k=1}^K \Gamma(\alpha_k)} \prod_{k=1}^{K-1} \left( x_k^{\alpha_k-1} v^{\alpha_k-1} e^{-x_k v} \right)\\
+    {}& \left( \right)
+\end{align}
+
+
+\subsection{Task 2}
+
+\section{Problem D}
+
+
+\end{document}
